@@ -5,3 +5,4 @@
 *Test.java
 **/test/
 *.sql
+application-dev.yml
