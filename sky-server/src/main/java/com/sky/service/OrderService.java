@@ -1,10 +1,12 @@
 package com.sky.service;
 
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
+import com.sky.result.PageResult;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
-import org.springframework.stereotype.Service;
+import com.sky.vo.OrderVO;
 
 
 public interface OrderService {
@@ -29,4 +31,23 @@ public interface OrderService {
      * @param outTradeNo
      */
     void paySuccess(String outTradeNo);
+
+    /**
+     * 查询订单
+     * @param id
+     * @return
+     */
+    OrderVO getOrderDetailById(Long id);
+
+    /**
+     * 催单
+     * @param id
+     */
+    void reminder(Long id);
+
+    /**
+     * 历史订单查询
+     * @return
+     */
+    PageResult getHistoryOrders(OrdersPageQueryDTO ordersPageQueryDTO);
 }

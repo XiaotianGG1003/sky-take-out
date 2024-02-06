@@ -1,8 +1,11 @@
 package com.sky.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,20 +13,20 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -44,6 +47,9 @@ public class OrderServiceImpl implements OrderService {
     UserMapper userMapper;
     @Autowired
     WeChatPayUtil weChatPayUtil;
+
+    @Autowired
+    WebSocketServer webSocketServer;
     /**
      * 用户下单
      * @param ordersSubmitDTO
@@ -155,5 +161,72 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+
+        Map map = new HashMap();
+        map.put("type", 1); // 来单提醒
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号: " + outTradeNo);
+
+        String jsonString = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(jsonString);
+
+    }
+
+    /**
+     * 查询订单
+     * @param id
+     * @return
+     */
+    public OrderVO getOrderDetailById(Long id) {
+        Orders orders = orderMapper.getById(id);
+        List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(id);
+
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders, orderVO);
+        orderVO.setOrderDetailList(orderDetails);
+        return orderVO;
+    }
+
+    /**
+     * 催单
+     * @param id
+     */
+    @Override
+    public void reminder(Long id) {
+        Orders orders = orderMapper.getById(id);
+
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        Map map = new HashMap();
+        map.put("type", 2); // 催单
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号: " + orders.getNumber());
+
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
+    }
+
+    /**
+     * 历史订单查询
+     * @return
+     */
+    @Override
+    public PageResult getHistoryOrders(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+
+        List<OrderVO> list = new ArrayList<>();
+
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
+
+        for (Orders order : page) {
+            List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(order.getId());
+            OrderVO orderVO = new OrderVO();
+            BeanUtils.copyProperties(order, orderVO);
+            orderVO.setOrderDetailList(orderDetails);
+            list.add(orderVO);
+        }
+
+        return new PageResult(page.getTotal(),list);
     }
 }
