@@ -29,4 +29,31 @@ public interface SetmealService {
      * @param setmealDTO
      */
     void save(SetmealDTO setmealDTO);
+
+    /**
+     * 分页查询
+     * @param setmealPageQueryDTO
+     * @return
+     */
+    PageResult page(SetmealPageQueryDTO setmealPageQueryDTO);
+
+    /**
+     * 套餐起售、停售
+     * @param id
+     * @param status
+     */
+    void setSetmealStatus(Long id, Integer status);
+
+    /**
+     * 根据id查询套餐
+     * @param id
+     * @return
+     */
+    SetmealVO getById(Long id);
+
+    /**
+     * 修改套餐
+     * @param setmealDTO
+     */
+    void updateSetmeal(SetmealDTO setmealDTO);
 }
