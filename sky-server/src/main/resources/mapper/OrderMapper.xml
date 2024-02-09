@@ -48,9 +48,11 @@
     <select id="pageQuery" resultType="com.sky.entity.Orders">
         select * from orders
         <where>
-            <if test="status != null">
-                and status = #{status}
-            </if>
+            <if test="status != null">and status = #{status}</if>
+            <if test="number != null">and number = #{number}</if>
+            <if test="phone != null">and phone = #{phone}</if>
+            <if test="beginTime != null">and order_Time &gt; #{beginTime}</if>
+            <if test="endTime != null">and order_Time &lt; #{endTime}</if>
         </where>
         order by order_time desc
     </select>
