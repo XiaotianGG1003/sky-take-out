@@ -56,4 +56,10 @@ public interface SetmealService {
      * @param setmealDTO
      */
     void updateSetmeal(SetmealDTO setmealDTO);
+
+    /**
+     * 删除套餐
+     * @param ids
+     */
+    void deleteSetmealByIds(List<Long> ids);
 }

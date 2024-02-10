@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/admin/setmeal")
@@ -52,6 +54,7 @@ public class SetmealController {
 
     @PostMapping("/status/{status}")
     @ApiOperation("套餐起售停售")
+    @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public Result setSetmealStatus(@PathVariable Integer status, Long id) {
         log.info("套餐起售停售 id:{} status:{}", id, status);
         setmealService.setSetmealStatus(id, status);
@@ -78,10 +81,22 @@ public class SetmealController {
      */
     @PutMapping()
     @ApiOperation("修改套餐")
+    @CacheEvict(cacheNames = "setmealCache", key = "#setmealDTO.categoryId")
     public Result updateSetmeal(@RequestBody SetmealDTO setmealDTO) {
         log.info("修改套餐{}", setmealDTO);
         setmealService.updateSetmeal(setmealDTO);
         return Result.success();
     }
 
+    /**
+     * 删除套餐
+     * @param ids
+     * @return
+     */
+    @DeleteMapping()
+    @ApiOperation("删除套餐")
+    public Result deleteSetmealByIds(@RequestParam List<Long> ids) {
+        setmealService.deleteSetmealByIds(ids);
+        return Result.success();
+    }
 }
