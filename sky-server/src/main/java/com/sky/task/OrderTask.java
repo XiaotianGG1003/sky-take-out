@@ -27,6 +27,7 @@ public class OrderTask {
 
         LocalDateTime time = LocalDateTime.now().plusMinutes(-15);
 
+        // 拿到当前还未支付的订单中，15分钟之前还未支付的订单将其取消
         List<Orders> list = orderMapper.getByStatusAndOrderTime(Orders.PENDING_PAYMENT, time);
 
         if (list != null && list.size() > 0) {
